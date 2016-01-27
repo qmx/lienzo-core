@@ -44,6 +44,7 @@ public final class WiresManager
 
     private IContainmentAcceptor                      m_containmentAcceptor = IContainmentAcceptor.DEFAULT;
 
+    private IDockingAcceptor                          m_dockingAcceptor     = IDockingAcceptor.DEFAULT;
     public static final WiresManager get(final Layer layer)
     {
         final String uuid = layer.uuid();
@@ -86,6 +87,7 @@ public final class WiresManager
 
         shape.setContainmentAcceptor(m_containmentAcceptor);
 
+        shape.setDockingAcceptor(m_dockingAcceptor);
         m_shapesMap.put(shape.getGroup().uuid(), shape);
 
         WiresShapeDragHandler handler = new WiresShapeDragHandler(shape, this);
