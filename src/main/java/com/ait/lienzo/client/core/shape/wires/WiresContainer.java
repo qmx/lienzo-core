@@ -30,6 +30,7 @@ public class WiresContainer
     private WiresContainer               m_parent;
 
     private IContainmentAcceptor         m_containmentAcceptor = IContainmentAcceptor.DEFAULT;;
+    private IDockingAcceptor             m_dockingAcceptor     = IDockingAcceptor.DEFAULT;
 
     public WiresContainer(IContainer<?, IPrimitive<?>> container)
     {
@@ -69,6 +70,11 @@ public class WiresContainer
     public void setContainmentAcceptor(IContainmentAcceptor containmentAcceptor)
     {
         m_containmentAcceptor = containmentAcceptor;
+    }
+
+    public void setDockingAcceptor(IDockingAcceptor dockingAcceptor)
+    {
+        m_dockingAcceptor = dockingAcceptor;
     }
 
     public void add(WiresShape shape)
