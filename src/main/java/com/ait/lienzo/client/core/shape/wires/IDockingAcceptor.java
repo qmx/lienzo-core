@@ -4,18 +4,18 @@ public interface IDockingAcceptor {
 
     IDockingAcceptor DEFAULT = new DefaultDockingAcceptor();
 
-    boolean dockingAccepted(WiresShape parent, WiresShape child);
+    boolean dockingAllowed(WiresContainer parent, WiresShape child, WiresShape target);
 
-    boolean acceptDocking(WiresShape parent, WiresShape child);
+    boolean acceptDocking(WiresContainer parent, WiresShape child, WiresShape target);
 
     class DefaultDockingAcceptor implements IDockingAcceptor {
         @Override
-        public boolean dockingAccepted(WiresShape parent, WiresShape child) {
+        public boolean dockingAllowed(WiresContainer parent, WiresShape child, WiresShape target) {
             return true;
         }
 
         @Override
-        public boolean acceptDocking(WiresShape parent, WiresShape child) {
+        public boolean acceptDocking(WiresContainer parent, WiresShape child, WiresShape target) {
             return true;
         }
     }
