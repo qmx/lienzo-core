@@ -59,7 +59,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     public void onNodeDragStart(NodeDragStartEvent event)
     {
         m_shape_color_map = new NFastStringMap<WiresShape>();
-        m_shapesBacking = m_wiresManager.getMagnetManager().drawShapesToBacking(m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, m_shape_color_map);
+        m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, m_shape_color_map);
 
         m_parent = m_shape.getParent();
         if (m_parent != null && m_parent instanceof WiresShape)
@@ -73,12 +73,12 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     @Override
     public void onNodeDragMove(NodeDragMoveEvent event)
     {
-        String color = m_wiresManager.getMagnetManager().findColorAtPoint(m_shapesBacking, event.getX(), event.getY());
+
+        String color = BackingColorMapUtils.findColorAtPoint(m_shapesBacking, event.getX(), event.getY());
         WiresContainer parent = null;
         if (color != null)
         {
             parent = m_shape_color_map.get(color);
-
         }
         if (parent != m_parent)
         {
