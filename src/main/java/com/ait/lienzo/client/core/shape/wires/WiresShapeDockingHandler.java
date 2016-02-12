@@ -1,5 +1,7 @@
 package com.ait.lienzo.client.core.shape.wires;
 
+import com.ait.lienzo.client.core.event.NodeDragEndEvent;
+import com.ait.lienzo.client.core.event.NodeDragEndHandler;
 import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.types.ImageData;
 import com.ait.lienzo.client.core.types.PathPartList;
@@ -13,7 +15,7 @@ import com.ait.tooling.nativetools.client.collection.NFastStringMap;
 
 import java.util.Set;
 
-public class WiresShapeDockingHandler implements DragConstraintEnforcer
+public class WiresShapeDockingHandler implements DragConstraintEnforcer, NodeDragEndHandler
 {
     private final WiresShape shape;
 
@@ -38,7 +40,7 @@ public class WiresShapeDockingHandler implements DragConstraintEnforcer
 
     @Override public boolean adjust(Point2D dxy)
     {
-        if (dragContext != null)
+        if (this.dragContext != null && this.m_shapesBacking != null)
         {
             int x = (int) (this.dragContext.getDragStartX() + dxy.getX());
             int y = (int) (this.dragContext.getDragStartY() + dxy.getY());
@@ -85,5 +87,11 @@ public class WiresShapeDockingHandler implements DragConstraintEnforcer
     {
         Point2D unit = intersection.sub(center).unit();
         return center.add(unit.mul(length));
+    }
+
+    @Override public void onNodeDragEnd(NodeDragEndEvent event)
+    {
+        this.colorMap.clear();
+        this.m_shapesBacking = null;
     }
 }
