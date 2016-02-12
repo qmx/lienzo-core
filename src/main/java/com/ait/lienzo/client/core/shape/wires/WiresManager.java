@@ -88,6 +88,7 @@ public final class WiresManager
         shape.setContainmentAcceptor(m_containmentAcceptor);
 
         shape.setDockingAcceptor(m_dockingAcceptor);
+
         m_shapesMap.put(shape.getGroup().uuid(), shape);
 
         WiresShapeDragHandler handler = new WiresShapeDragHandler(shape, this);
