@@ -34,6 +34,7 @@ public class BackingColorMapUtils
             {
                 continue;
             }
+            drawShapeToBacking(ctx, prim, MagnetManager.m_c_rotor.next(), shape_color_map, false);
             drawShapeToBacking(ctx, prim, MagnetManager.m_c_rotor.next(), shape_color_map, true);
 
             if (prim.getChildShapes() != null)
