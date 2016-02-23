@@ -35,7 +35,7 @@ public class WiresShapeDockingHandler implements DragConstraintEnforcer, NodeDra
     {
         this.dragContext = dragContext;
         this.colorMap = new NFastStringMap<>();
-        this.m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(this.shape.getWiresLayer().getChildShapes(), shape.getWiresLayer().getLayer().getScratchPad(), shape, this.colorMap);
+        this.m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(this.shape.getWiresLayer().getChildShapes(), shape.getWiresLayer().getLayer().getScratchPad(), shape, this.colorMap, true);
     }
 
     @Override public boolean adjust(Point2D dxy)

@@ -14,18 +14,18 @@ import com.ait.tooling.nativetools.client.collection.NFastStringMap;
 
 public class BackingColorMapUtils
 {
-    public static ImageData drawShapesToBacking(NFastArrayList<WiresShape> prims, ScratchPad scratch, WiresContainer skip, NFastStringMap<WiresShape> shape_color_map)
+    public static ImageData drawShapesToBacking(NFastArrayList<WiresShape> prims, ScratchPad scratch, WiresContainer skip, NFastStringMap<WiresShape> shape_color_map, boolean addHotspot)
     {
         scratch.clear();
         Context2D ctx = scratch.getContext();
 
         shape_color_map.clear();
-        drawShapesToBacking(prims, ctx, skip, shape_color_map);
+        drawShapesToBacking(prims, ctx, skip, shape_color_map, addHotspot);
 
         return ctx.getImageData(0, 0, scratch.getWidth(), scratch.getHeight());
     }
 
-    public static void drawShapesToBacking(NFastArrayList<WiresShape> prims, Context2D ctx, WiresContainer skip, NFastStringMap<WiresShape> shape_color_map)
+    public static void drawShapesToBacking(NFastArrayList<WiresShape> prims, Context2D ctx, WiresContainer skip, NFastStringMap<WiresShape> shape_color_map, boolean addHotspot)
     {
         for (int j = 0; j < prims.size(); j++)
         {
@@ -34,12 +34,15 @@ public class BackingColorMapUtils
             {
                 continue;
             }
-            drawShapeToBacking(ctx, prim, MagnetManager.m_c_rotor.next(), shape_color_map, false);
+            if (addHotspot)
+            {
+                drawShapeToBacking(ctx, prim, MagnetManager.m_c_rotor.next(), shape_color_map, false);
+            }
             drawShapeToBacking(ctx, prim, MagnetManager.m_c_rotor.next(), shape_color_map, true);
 
             if (prim.getChildShapes() != null)
             {
-                drawShapesToBacking(prim.getChildShapes(), ctx, skip, shape_color_map);
+                drawShapesToBacking(prim.getChildShapes(), ctx, skip, shape_color_map, addHotspot);
             }
         }
     }

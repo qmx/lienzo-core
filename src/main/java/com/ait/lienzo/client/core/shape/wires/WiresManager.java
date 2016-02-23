@@ -45,6 +45,7 @@ public final class WiresManager
     private IContainmentAcceptor                      m_containmentAcceptor = IContainmentAcceptor.DEFAULT;
 
     private IDockingAcceptor                          m_dockingAcceptor     = IDockingAcceptor.DEFAULT;
+
     public static final WiresManager get(final Layer layer)
     {
         final String uuid = layer.uuid();
@@ -235,5 +236,15 @@ public final class WiresManager
     public void setContainmentAcceptor(IContainmentAcceptor containmentAcceptor)
     {
         m_containmentAcceptor = containmentAcceptor;
+    }
+
+    public IDockingAcceptor getDockingAcceptor()
+    {
+        return m_dockingAcceptor;
+    }
+
+    public void setDockingAcceptor(IDockingAcceptor dockingAcceptor)
+    {
+        this.m_dockingAcceptor = dockingAcceptor;
     }
 }

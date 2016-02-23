@@ -26,7 +26,9 @@ import com.ait.lienzo.client.core.event.NodeMouseDownEvent;
 import com.ait.lienzo.client.core.event.NodeMouseDownHandler;
 import com.ait.lienzo.client.core.event.NodeMouseUpEvent;
 import com.ait.lienzo.client.core.event.NodeMouseUpHandler;
+import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.types.ImageData;
+import com.ait.lienzo.client.core.types.PathPartList;
 import com.ait.lienzo.client.core.types.Point2D;
 import com.ait.tooling.nativetools.client.collection.NFastStringMap;
 
@@ -48,6 +50,8 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
 
     private NFastStringMap<WiresShape> m_shape_color_map;
 
+    private MultiPath                  dockingZoneHighlight;
+
     public WiresShapeDragHandler(WiresShape shape, WiresManager wiresManager)
     {
         m_shape = shape;
@@ -59,12 +63,11 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     public void onNodeDragStart(NodeDragStartEvent event)
     {
         m_shape_color_map = new NFastStringMap<WiresShape>();
-        m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, m_shape_color_map);
+        m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, m_shape_color_map, true);
 
         m_parent = m_shape.getParent();
         if (m_parent != null && m_parent instanceof WiresShape)
         {
-
             highlightContainer((WiresShape) m_parent);
             m_layer.getLayer().batch();
         }
@@ -96,6 +99,15 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
                     && parent.getContainmentAcceptor().containmentAllowed(parent, m_shape))
             {
                 highlightContainer((WiresShape) parent);
+                batch = true;
+            }
+            if (parent != null && parent instanceof WiresShape
+                    && parent.getDockingAcceptor().dockingAllowed(parent, m_shape, null)) {
+                dockingZoneHighlight = ((WiresShape) parent).getPath().copy()
+                        .setX(((WiresShape) parent).getGroup().getX())
+                        .setY(((WiresShape) parent).getGroup().getY())
+                        .setStrokeWidth(20).setStrokeColor("#FF0000").setStrokeAlpha(0.5).setFillAlpha(1);
+                m_layer.getLayer().add(dockingZoneHighlight);
                 batch = true;
             }
             if (batch)
@@ -174,5 +186,8 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
         m_priorFill = null;
         m_shapesBacking = null;
         m_shape_color_map = null;
+
+        dockingZoneHighlight.removeFromParent();
+        m_layer.getLayer().batch();
     }
 }

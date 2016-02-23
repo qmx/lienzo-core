@@ -204,7 +204,7 @@ public class WiresConnector
 
             MagnetManager mm = m_connector.getWiresManager().getMagnetManager();
 
-            m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(layer.getChildShapes(), scratch, null, m_shape_color_map);
+            m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(layer.getChildShapes(), scratch, null, m_shape_color_map, true);
 
             m_connector.getDecoratableLine().getOverLayer().getContext().createImageData(m_shapesBacking);
 

@@ -72,6 +72,11 @@ public class WiresContainer
         m_containmentAcceptor = containmentAcceptor;
     }
 
+    public IDockingAcceptor getDockingAcceptor()
+    {
+        return m_dockingAcceptor;
+    }
+
     public void setDockingAcceptor(IDockingAcceptor dockingAcceptor)
     {
         m_dockingAcceptor = dockingAcceptor;
