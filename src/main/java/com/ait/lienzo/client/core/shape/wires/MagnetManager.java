@@ -44,7 +44,7 @@ public class MagnetManager
         Context2D ctx = scratch.getContext();
 
         // the Shape doesn't need recording, we just need to know the mouse is over something
-        BackingColorMapUtils.drawShapeToBacking(ctx, magnets.getWiresShape(), m_c_rotor.next(), shape_color_map);
+        BackingColorMapUtils.drawShapeToBacking(ctx, magnets.getWiresShape(), m_c_rotor.next(), shape_color_map, true);
 
         magnet_color_map.clear();
         for (int i = 0; i < magnets.size(); i++)

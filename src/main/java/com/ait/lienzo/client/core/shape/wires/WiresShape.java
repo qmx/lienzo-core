@@ -369,5 +369,8 @@ public class WiresShape extends WiresContainer
         return removed;
     }
 
-
+    public String getGroupID()
+    {
+        return getGroup().getID();
+    }
 }

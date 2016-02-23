@@ -34,7 +34,7 @@ public class BackingColorMapUtils
             {
                 continue;
             }
-            drawShapeToBacking(ctx, prim, MagnetManager.m_c_rotor.next(), shape_color_map);
+            drawShapeToBacking(ctx, prim, MagnetManager.m_c_rotor.next(), shape_color_map, true);
 
             if (prim.getChildShapes() != null)
             {
@@ -43,7 +43,7 @@ public class BackingColorMapUtils
         }
     }
 
-    public static void drawShapeToBacking(Context2D ctx, WiresShape shape, String color, NFastStringMap<WiresShape> m_shape_color_map)
+    public static void drawShapeToBacking(Context2D ctx, WiresShape shape, String color, NFastStringMap<WiresShape> m_shape_color_map, boolean shouldCloseOpenPaths)
     {
         m_shape_color_map.put(color, shape);
         MultiPath multiPath = shape.getPath();
@@ -53,9 +53,19 @@ public class BackingColorMapUtils
         {
             PathPartList path = listOfPaths.get(k);
 
-            ctx.setStrokeWidth(multiPath.getStrokeWidth());
+            if(shouldCloseOpenPaths)
+            {
+                ctx.setStrokeWidth(multiPath.getStrokeWidth());
+            }
+            else
+            {
+                ctx.setStrokeWidth(20);
+            }
             ctx.setStrokeColor(color);
-            ctx.setFillColor(color);
+            if (!shouldCloseOpenPaths)
+            {
+                ctx.setFillColor(color);
+            }
             ctx.beginPath();
 
             Point2D absLoc = multiPath.getAbsoluteLocation();
@@ -87,8 +97,11 @@ public class BackingColorMapUtils
                     }
                     case PathPartEntryJSO.CLOSE_PATH_PART:
                     {
-                        ctx.closePath();
-                        closed = true;
+                        if (!shouldCloseOpenPaths)
+                        {
+                            ctx.closePath();
+                            closed = true;
+                        }
                         break;
                     }
                     case PathPartEntryJSO.CANVAS_ARCTO_ABSOLUTE:
@@ -108,7 +121,7 @@ public class BackingColorMapUtils
                 }
             }
 
-            if (!closed)
+            if (!closed && shouldCloseOpenPaths)
             {
                 ctx.closePath();
             }
