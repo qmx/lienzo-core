@@ -26,4 +26,9 @@ public class PickerPart
         this.shape = shape;
         this.part = part;
     }
+
+    @Override public String toString()
+    {
+        return this.part.toString() + " for " + this.shape.toString();
+    }
 }

@@ -28,6 +28,7 @@ import com.ait.lienzo.client.core.event.NodeMouseUpEvent;
 import com.ait.lienzo.client.core.event.NodeMouseUpHandler;
 import com.ait.lienzo.client.core.shape.wires.picker.ColorMapBackedPicker;
 import com.ait.lienzo.client.core.types.Point2D;
+import com.ait.tooling.nativetools.client.util.Console;
 
 public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpHandler, NodeDragStartHandler, NodeDragMoveHandler, NodeDragEndHandler
 {
@@ -74,6 +75,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
         PickerPart part = picker.findShapeAt(event.getX(), event.getY());
         if (part != null)
         {
+            Console.get().info(part.toString());
             parent = part.getShape();
         }
         if (parent != m_parent)

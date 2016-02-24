@@ -235,4 +235,9 @@ public final class WiresManager
     {
         m_containmentAcceptor = containmentAcceptor;
     }
+
+    public void setDockingAcceptor(IDockingAcceptor dockingAcceptor)
+    {
+        this.m_dockingAcceptor = dockingAcceptor;
+    }
 }

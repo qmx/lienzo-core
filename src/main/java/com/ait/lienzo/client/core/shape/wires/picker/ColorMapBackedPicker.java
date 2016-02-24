@@ -14,6 +14,7 @@ import com.ait.lienzo.client.core.util.ScratchPad;
 import com.ait.tooling.nativetools.client.collection.NFastArrayList;
 import com.ait.tooling.nativetools.client.collection.NFastDoubleArrayJSO;
 import com.ait.tooling.nativetools.client.collection.NFastStringMap;
+import com.ait.tooling.nativetools.client.util.Console;
 
 public class ColorMapBackedPicker
 {
@@ -46,11 +47,11 @@ public class ColorMapBackedPicker
             {
                 continue;
             }
+            drawShape(ctx, colorKeyRotor.next(), new PickerPart(prim, PickerPart.ShapePart.BODY));
             if (addHotspots)
             {
                 drawShape(ctx, colorKeyRotor.next(), new PickerPart(prim, PickerPart.ShapePart.BORDER));
             }
-            drawShape(ctx, colorKeyRotor.next(), new PickerPart(prim, PickerPart.ShapePart.BODY));
 
             if (prim.getChildShapes() != null)
             {
@@ -151,6 +152,7 @@ public class ColorMapBackedPicker
         String color = BackingColorMapUtils.findColorAtPoint(imageData, x, y);
         if (color != null)
         {
+            Console.get().info(color);
             PickerPart pickerPart = colorMap.get(color);
             if (pickerPart != null)
             {
