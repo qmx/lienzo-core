@@ -26,10 +26,8 @@ import com.ait.lienzo.client.core.event.NodeMouseDownEvent;
 import com.ait.lienzo.client.core.event.NodeMouseDownHandler;
 import com.ait.lienzo.client.core.event.NodeMouseUpEvent;
 import com.ait.lienzo.client.core.event.NodeMouseUpHandler;
-import com.ait.lienzo.client.core.types.ImageData;
-import com.ait.lienzo.client.core.types.PathPartList;
+import com.ait.lienzo.client.core.shape.wires.picker.ColorMapBackedPicker;
 import com.ait.lienzo.client.core.types.Point2D;
-import com.ait.tooling.nativetools.client.collection.NFastStringMap;
 
 public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpHandler, NodeDragStartHandler, NodeDragMoveHandler, NodeDragEndHandler
 {
@@ -45,10 +43,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
 
     private double                     m_priorAlpha;
 
-    private ImageData                  m_shapesBacking;
-
-    private NFastStringMap<WiresShape> m_shape_color_map;
-
+    private ColorMapBackedPicker picker;
 
     public WiresShapeDragHandler(WiresShape shape, WiresManager wiresManager)
     {
@@ -60,8 +55,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     @Override
     public void onNodeDragStart(NodeDragStartEvent event)
     {
-        m_shape_color_map = new NFastStringMap<WiresShape>();
-        m_shapesBacking = BackingColorMapUtils.drawShapesToBacking(m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, m_shape_color_map, true);
+        picker = new ColorMapBackedPicker(m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, true);
 
         m_parent = m_shape.getParent();
         if (m_parent != null && m_parent instanceof WiresShape)
@@ -75,11 +69,11 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     public void onNodeDragMove(NodeDragMoveEvent event)
     {
 
-        String color = BackingColorMapUtils.findColorAtPoint(m_shapesBacking, event.getX(), event.getY());
         WiresContainer parent = null;
-        if (color != null)
+        PickerPart part = picker.findShapeAt(event.getX(), event.getY());
+        if (part != null)
         {
-            parent = m_shape_color_map.get(color);
+            parent = part.getShape();
         }
         if (parent != m_parent)
         {
@@ -173,8 +167,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
 
         m_parent = null;
         m_priorFill = null;
-        m_shapesBacking = null;
-        m_shape_color_map = null;
+        picker = null;
 
     }
 }
