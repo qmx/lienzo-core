@@ -26,7 +26,6 @@ import com.ait.lienzo.client.core.event.NodeMouseDownEvent;
 import com.ait.lienzo.client.core.event.NodeMouseDownHandler;
 import com.ait.lienzo.client.core.event.NodeMouseUpEvent;
 import com.ait.lienzo.client.core.event.NodeMouseUpHandler;
-import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.types.ImageData;
 import com.ait.lienzo.client.core.types.PathPartList;
 import com.ait.lienzo.client.core.types.Point2D;
@@ -50,7 +49,6 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
 
     private NFastStringMap<WiresShape> m_shape_color_map;
 
-    private MultiPath                  dockingZoneHighlight;
 
     public WiresShapeDragHandler(WiresShape shape, WiresManager wiresManager)
     {
@@ -99,15 +97,6 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
                     && parent.getContainmentAcceptor().containmentAllowed(parent, m_shape))
             {
                 highlightContainer((WiresShape) parent);
-                batch = true;
-            }
-            if (parent != null && parent instanceof WiresShape
-                    && parent.getDockingAcceptor().dockingAllowed(parent, m_shape, null)) {
-                dockingZoneHighlight = ((WiresShape) parent).getPath().copy()
-                        .setX(((WiresShape) parent).getGroup().getX())
-                        .setY(((WiresShape) parent).getGroup().getY())
-                        .setStrokeWidth(20).setStrokeColor("#FF0000").setStrokeAlpha(0.5).setFillAlpha(1);
-                m_layer.getLayer().add(dockingZoneHighlight);
                 batch = true;
             }
             if (batch)
@@ -187,7 +176,5 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
         m_shapesBacking = null;
         m_shape_color_map = null;
 
-        dockingZoneHighlight.removeFromParent();
-        m_layer.getLayer().batch();
     }
 }
