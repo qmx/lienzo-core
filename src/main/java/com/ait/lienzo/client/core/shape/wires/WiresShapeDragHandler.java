@@ -26,6 +26,7 @@ import com.ait.lienzo.client.core.event.NodeMouseDownEvent;
 import com.ait.lienzo.client.core.event.NodeMouseDownHandler;
 import com.ait.lienzo.client.core.event.NodeMouseUpEvent;
 import com.ait.lienzo.client.core.event.NodeMouseUpHandler;
+import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.shape.wires.picker.ColorMapBackedPicker;
 import com.ait.lienzo.client.core.types.Point2D;
 import com.ait.tooling.nativetools.client.util.Console;
@@ -62,49 +63,82 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
         if (m_parent != null && m_parent instanceof WiresShape)
         {
 
-            highlightContainer((WiresShape) m_parent);
+            highlightBody((WiresShape) m_parent);
             m_layer.getLayer().batch();
         }
     }
 
+    private PickerPart m_parentPart;
+    private MultiPath m_path;
+
     @Override
     public void onNodeDragMove(NodeDragMoveEvent event)
     {
-
         WiresContainer parent = null;
-        PickerPart part = picker.findShapeAt(event.getX(), event.getY());
-        if (part != null)
+        PickerPart parentPart = picker.findShapeAt(event.getX(), event.getY());
+
+        if (parentPart != null)
         {
-            Console.get().info(part.toString());
-            parent = part.getShape();
+            parent = parentPart.getShape();
         }
-        if (parent != m_parent)
+
+        if (parent != m_parent || parentPart != m_parentPart)
         {
             boolean batch = false;
-            if (m_parent != null && m_parent instanceof WiresShape
-                    && m_parent.getContainmentAcceptor() != null)
-            {
 
-                ((WiresShape) m_parent).getPath().setFillColor(m_priorFill);
-                ((WiresShape) m_parent).getPath().setFillAlpha(m_priorAlpha);
-                batch = true;
-            }
-            if (parent != null && parent instanceof WiresShape
-                    && parent.getContainmentAcceptor() != null
-                    && parent.getContainmentAcceptor().containmentAllowed(parent, m_shape))
+            if (m_parent != null && m_parent instanceof WiresShape )
             {
-                highlightContainer((WiresShape) parent);
+                if ( m_parentPart.getShapePart() == PickerPart.ShapePart.BODY ) {
+                    restoreBody();
+                } else {
+                    m_path.removeFromParent();
+                    m_path = null;
+
+                }
                 batch = true;
             }
+
+            if (parent != null && parent instanceof WiresShape)
+            {
+                if ( parentPart.getShapePart() == PickerPart.ShapePart.BODY )
+                {
+                    if (  parent.getContainmentAcceptor().containmentAllowed(parent, m_shape)) {
+                        highlightBody((WiresShape) parent);
+                    }
+                } else { // if ( parent.getDockingAcceptor().dockingAllowed(parent, m_shape) )
+                    highlightBorder((WiresShape) parent);
+                }
+                batch = true;
+            }
+
             if (batch)
             {
                 m_layer.getLayer().batch();
+                m_layer.getLayer().getOverLayer().batch();
             }
         }
         m_parent = parent;
+        m_parentPart = parentPart;
     }
 
-    private void highlightContainer(WiresShape parent)
+    private void restoreBody() {
+        ((WiresShape) m_parent).getPath().setFillColor(m_priorFill);
+        ((WiresShape) m_parent).getPath().setFillAlpha(m_priorAlpha);
+    }
+
+    private void highlightBorder(WiresShape parent) {
+        MultiPath path = parent.getPath();
+        m_path = path.copy();
+        m_path.setStrokeWidth(10);
+        Point2D absLoc = path.getAbsoluteLocation();
+        m_path.setX(absLoc.getX());
+        m_path.setY(absLoc.getY());
+        m_path.setStrokeColor("#CC1100");
+        m_path.setStrokeAlpha(0.8);
+        m_layer.getLayer().getOverLayer().add(m_path);
+    }
+
+    private void highlightBody(WiresShape parent)
     {
         m_priorFill = parent.getPath().getFillColor();
         m_priorAlpha = parent.getPath().getFillAlpha();
@@ -142,30 +176,35 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
             m_parent = m_layer;
         }
 
-        if (m_parent.getContainmentAcceptor() !=null
-                && m_parent.getContainmentAcceptor().acceptContainment(m_parent, m_shape))
+        if ( m_path != null ) {
+            m_path.removeFromParent();
+            m_layer.getLayer().getOverLayer().batch();
+        }
+
+        if ( m_parentPart == null || m_parentPart.getShapePart() == PickerPart.ShapePart.BODY ) {
+            if (m_parent.getContainmentAcceptor().acceptContainment(m_parent, m_shape)) {
+                if (m_parent instanceof WiresShape) {
+                    restoreBody();
+                }
+
+                m_shape.removeFromParent();
+
+                if (m_parent == m_layer) {
+                    m_shape.getGroup().setLocation(absLoc);
+                } else {
+                    Point2D trgAbsOffset = m_parent.getContainer().getAbsoluteLocation();
+
+                    m_shape.getGroup().setX(absLoc.getX() - trgAbsOffset.getX()).setY(absLoc.getY() - trgAbsOffset.getY());
+                }
+                m_parent.add(m_shape);
+
+                m_layer.getLayer().batch();
+            }
+        }
+        else // if ( parent.getDockingAcceptor().acceptDocking(parent, m_shape) )
         {
-            if (m_parent instanceof WiresShape)
-            {
-                ((WiresShape) m_parent).getPath().setFillColor(m_priorFill);
-                ((WiresShape) m_parent).getPath().setFillAlpha(m_priorAlpha);
-            }
 
-            m_shape.removeFromParent();
-
-            if (m_parent == m_layer)
-            {
-                m_shape.getGroup().setLocation(absLoc);
-            }
-            else
-            {
-                Point2D trgAbsOffset = m_parent.getContainer().getAbsoluteLocation();
-
-                m_shape.getGroup().setX(absLoc.getX() - trgAbsOffset.getX()).setY(absLoc.getY() - trgAbsOffset.getY());
-            }
-            m_parent.add(m_shape);
-
-            m_layer.getLayer().batch();
+            // handle docking here
         }
 
         m_parent = null;

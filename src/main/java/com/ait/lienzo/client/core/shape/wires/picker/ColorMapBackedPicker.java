@@ -40,9 +40,7 @@ public class ColorMapBackedPicker
         Context2D ctx = scratchPad.getContext();
 
         addShapes(ctx, shapes, shapeToSkip);
-        CanvasElement element = scratchPad.getElement();
-        layer.getContext().drawImage(element, scratchPad.getWidth(), scratchPad.getHeight());
-        layer.draw();
+
         this.imageData = ctx.getImageData(0, 0, scratchPad.getWidth(), scratchPad.getHeight());
     }
 
@@ -146,7 +144,7 @@ public class ColorMapBackedPicker
                 }
             }
 
-            if (!closed && PickerPart.ShapePart.BODY.equals(pickerPart.getShapePart()))
+            if (!closed)
             {
                 ctx.closePath();
             }
@@ -164,7 +162,6 @@ public class ColorMapBackedPicker
         String color = BackingColorMapUtils.findColorAtPoint(imageData, x, y);
         if (color != null)
         {
-            Console.get().info(color);
             PickerPart pickerPart = colorMap.get(color);
             if (pickerPart != null)
             {
