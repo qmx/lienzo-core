@@ -56,7 +56,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     @Override
     public void onNodeDragStart(NodeDragStartEvent event)
     {
-        picker = new ColorMapBackedPicker(m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, true);
+        picker = new ColorMapBackedPicker(m_layer.getLayer(), m_layer.getChildShapes(), m_layer.getLayer().getScratchPad(), m_shape, true);
 
         m_parent = m_shape.getParent();
         if (m_parent != null && m_parent instanceof WiresShape)

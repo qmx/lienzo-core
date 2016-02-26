@@ -1,6 +1,7 @@
 package com.ait.lienzo.client.core.shape.wires.picker;
 
 import com.ait.lienzo.client.core.Context2D;
+import com.ait.lienzo.client.core.shape.Layer;
 import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.shape.wires.BackingColorMapUtils;
 import com.ait.lienzo.client.core.shape.wires.PickerPart;
@@ -15,6 +16,7 @@ import com.ait.tooling.nativetools.client.collection.NFastArrayList;
 import com.ait.tooling.nativetools.client.collection.NFastDoubleArrayJSO;
 import com.ait.tooling.nativetools.client.collection.NFastStringMap;
 import com.ait.tooling.nativetools.client.util.Console;
+import com.google.gwt.dom.client.CanvasElement;
 
 public class ColorMapBackedPicker
 {
@@ -27,14 +29,20 @@ public class ColorMapBackedPicker
 
     private final boolean addHotspots;
 
-    public ColorMapBackedPicker(NFastArrayList<WiresShape> shapes, ScratchPad scratchPad, WiresShape shapeToSkip, boolean addHotspots)
+    private Layer layer;
+
+    public ColorMapBackedPicker(Layer layer, NFastArrayList<WiresShape> shapes, ScratchPad scratchPad, WiresShape shapeToSkip, boolean addHotspots)
     {
+        this.layer = layer;
         this.addHotspots = addHotspots;
         scratchPad.clear();
+
         Context2D ctx = scratchPad.getContext();
 
         addShapes(ctx, shapes, shapeToSkip);
-
+        CanvasElement element = scratchPad.getElement();
+        layer.getContext().drawImage(element, scratchPad.getWidth(), scratchPad.getHeight());
+        layer.draw();
         this.imageData = ctx.getImageData(0, 0, scratchPad.getWidth(), scratchPad.getHeight());
     }
 
@@ -142,7 +150,11 @@ public class ColorMapBackedPicker
             {
                 ctx.closePath();
             }
-            ctx.fill();
+
+            if (PickerPart.ShapePart.BODY.equals(pickerPart.getShapePart()))
+            {
+                ctx.fill();
+            }
             ctx.stroke();
         }
     }
