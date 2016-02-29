@@ -28,10 +28,18 @@ import com.ait.lienzo.client.core.event.NodeMouseUpEvent;
 import com.ait.lienzo.client.core.event.NodeMouseUpHandler;
 import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.shape.wires.picker.ColorMapBackedPicker;
+import com.ait.lienzo.client.core.types.PathPartList;
 import com.ait.lienzo.client.core.types.Point2D;
+import com.ait.lienzo.client.core.types.Point2DArray;
+import com.ait.lienzo.client.core.util.Geometry;
+import com.ait.lienzo.client.widget.DragConstraintEnforcer;
+import com.ait.lienzo.client.widget.DragContext;
+import com.ait.tooling.nativetools.client.collection.NFastArrayList;
 import com.ait.tooling.nativetools.client.util.Console;
 
-public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpHandler, NodeDragStartHandler, NodeDragMoveHandler, NodeDragEndHandler
+import java.util.Set;
+
+public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpHandler, NodeDragStartHandler, NodeDragMoveHandler, NodeDragEndHandler, DragConstraintEnforcer
 {
     private WiresShape                 m_shape;
 
@@ -46,6 +54,8 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     private double                     m_priorAlpha;
 
     private ColorMapBackedPicker picker;
+
+    private DragContext dragContext;
 
     public WiresShapeDragHandler(WiresShape shape, WiresManager wiresManager)
     {
@@ -107,6 +117,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
                     }
                 } else { // if ( parent.getDockingAcceptor().dockingAllowed(parent, m_shape) )
                     highlightBorder((WiresShape) parent);
+                    m_shape.getGroup().setDragConstraints(this);
                 }
                 batch = true;
             }
@@ -210,5 +221,53 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
         m_parent = null;
         m_priorFill = null;
         picker = null;
+    }
+
+    @Override public void startDrag(DragContext dragContext)
+    {
+        this.dragContext = dragContext;
+    }
+
+    @Override public boolean adjust(Point2D dxy)
+    {
+        if (dragContext != null && m_path != null)
+        {
+            int x = (int) (this.dragContext.getDragStartX() + dxy.getX());
+            int y = (int) (this.dragContext.getDragStartY() + dxy.getY());
+            Point2D pointerPosition = new Point2D(x, y);
+            Point2D center = findCenter(m_path);
+            NFastArrayList<PathPartList> pathPartListArray = m_path.getPathPartListArray();
+            for (int i = 0; i < pathPartListArray.size(); i++)
+            {
+                Point2DArray listOfLines = new Point2DArray();
+                listOfLines.push(center);
+                listOfLines.push(getProjection(center, pointerPosition, m_path.getBoundingBox().getWidth()));
+                Set<Point2D>[] intersections = new Set[1];
+                Geometry.getCardinalIntersects(pathPartListArray.get(i), listOfLines, intersections);
+                if (intersections.length == 2)
+                {
+                    Point2D intersection = intersections[1].iterator().next();
+                    Console.get().info(intersection.toJSONString());
+                    double dx = intersection.getX() - this.dragContext.getDragStartX();
+                    dxy.setX(dx);
+                    double dy = intersection.getY() - this.dragContext.getDragStartY();
+                    dxy.setY(dy);
+                }
+
+            }
+        }
+        return false;
+    }
+
+    private Point2D findCenter(MultiPath rect)
+    {
+        Point2DArray cardinals = Geometry.getCardinals(rect.getBoundingPoints().getBoundingBox());
+        return cardinals.get(0);
+    }
+
+    private Point2D getProjection(Point2D center, Point2D intersection, double length)
+    {
+        Point2D unit = intersection.sub(center).unit();
+        return center.add(unit.mul(length));
     }
 }
