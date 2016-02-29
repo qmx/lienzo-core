@@ -129,7 +129,7 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     private void highlightBorder(WiresShape parent) {
         MultiPath path = parent.getPath();
         m_path = path.copy();
-        m_path.setStrokeWidth(10);
+        m_path.setStrokeWidth(20);
         Point2D absLoc = path.getAbsoluteLocation();
         m_path.setX(absLoc.getX());
         m_path.setY(absLoc.getY());
