@@ -15,8 +15,6 @@ import com.ait.lienzo.client.core.util.ScratchPad;
 import com.ait.tooling.nativetools.client.collection.NFastArrayList;
 import com.ait.tooling.nativetools.client.collection.NFastDoubleArrayJSO;
 import com.ait.tooling.nativetools.client.collection.NFastStringMap;
-import com.ait.tooling.nativetools.client.util.Console;
-import com.google.gwt.dom.client.CanvasElement;
 
 public class ColorMapBackedPicker
 {
