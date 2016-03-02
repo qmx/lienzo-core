@@ -19,6 +19,8 @@ import com.ait.tooling.nativetools.client.collection.NFastStringMap;
 public class ColorMapBackedPicker
 {
 
+    public static final int DOCKING_BORDER_WIDTH = 40;
+
     private final ImageData imageData;
 
     private final NFastStringMap<PickerPart> colorMap = new NFastStringMap<>();
@@ -80,7 +82,7 @@ public class ColorMapBackedPicker
             }
             else
             {
-                ctx.setStrokeWidth(20);
+                ctx.setStrokeWidth(DOCKING_BORDER_WIDTH);
             }
             ctx.setStrokeColor(color);
             if (PickerPart.ShapePart.BODY.equals(pickerPart.getShapePart()))
