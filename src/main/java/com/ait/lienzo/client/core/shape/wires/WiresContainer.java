@@ -32,6 +32,8 @@ public class WiresContainer
     private IContainmentAcceptor         m_containmentAcceptor = IContainmentAcceptor.DEFAULT;;
     private IDockingAcceptor             m_dockingAcceptor     = IDockingAcceptor.DEFAULT;
 
+    private WiresContainer               dockedTo;
+
     public WiresContainer(IContainer<?, IPrimitive<?>> container)
     {
         m_container = container;
@@ -114,5 +116,15 @@ public class WiresContainer
 
             shape.setParent(null);
         }
+    }
+
+    public void setDockedTo(WiresContainer dockedTo)
+    {
+        this.dockedTo = dockedTo;
+    }
+
+    public WiresContainer getDockedTo()
+    {
+        return dockedTo;
     }
 }
