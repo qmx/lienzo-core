@@ -27,18 +27,12 @@ import com.ait.lienzo.client.core.event.NodeMouseDownHandler;
 import com.ait.lienzo.client.core.event.NodeMouseUpEvent;
 import com.ait.lienzo.client.core.event.NodeMouseUpHandler;
 import com.ait.lienzo.client.core.shape.MultiPath;
-import com.ait.lienzo.client.core.shape.wires.docking.DockingCallback;
 import com.ait.lienzo.client.core.shape.wires.picker.ColorMapBackedPicker;
-import com.ait.lienzo.client.core.types.PathPartList;
 import com.ait.lienzo.client.core.types.Point2D;
-import com.ait.lienzo.client.core.types.Point2DArray;
 import com.ait.lienzo.client.core.util.Geometry;
 import com.ait.lienzo.client.widget.DragConstraintEnforcer;
 import com.ait.lienzo.client.widget.DragContext;
-import com.ait.tooling.nativetools.client.collection.NFastArrayList;
 import com.ait.tooling.nativetools.client.util.Console;
-
-import java.util.Set;
 
 public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpHandler, NodeDragStartHandler, NodeDragMoveHandler, NodeDragEndHandler, DragConstraintEnforcer
 {
@@ -118,7 +112,6 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
                     }
                 } else { // if ( parent.getDockingAcceptor().dockingAllowed(parent, m_shape) )
                     highlightBorder((WiresShape) parent);
-                    m_shape.getGroup().setDragConstraints(this);
                 }
                 batch = true;
             }
@@ -161,19 +154,20 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
     @Override
     public void onNodeDragEnd(NodeDragEndEvent event)
     {
-        Console.get().info("dragend");
         if (m_path != null)
         {
             m_shape.setDockedTo(m_parent);
             this.dragContext = event.getDragContext();
-            findIntersections(new Point2D(event.getX(), event.getY()), new DockingCallback()
-            {
-                @Override public void meh(Point2D xy)
+            if (m_parent instanceof WiresShape) {
+                Point2D intersection = Geometry.findIntersection(event.getX(), event.getY(), ((WiresShape) m_parent).getPath());
+                if (intersection != null)
                 {
-                    m_shape.setX(xy.getX()).setY(xy.getY()).getWiresLayer().getLayer().batch();
+                    Console.get().info(intersection.toJSONString());
+                    m_shape.getGroup().setX(intersection.getX()).setY(intersection.getY());
+                    m_layer.getLayer().batch();
+                    m_shape.getGroup().setDragConstraints(this);
                 }
-            }, m_path);
-
+            }
         }
         addShapeToParent();
     }
@@ -251,58 +245,24 @@ public class WiresShapeDragHandler implements NodeMouseDownHandler, NodeMouseUpH
 
     @Override public boolean adjust(final Point2D dxy)
     {
-        Console.get().info("adjust");
-        DockingCallback callback = new DockingCallback()
-        {
-            @Override public void meh(Point2D intersection)
-            {
-                dxy.setX(intersection.getX());
-                dxy.setY(intersection.getY());
-            }
-        };
-
         MultiPath targetShape = this.m_path;
         if (dragContext != null && targetShape != null)
         {
-            findIntersections(dxy, callback, targetShape);
+            int x = (int) (this.dragContext.getDragStartX() + dxy.getX());
+            int y = (int) (this.dragContext.getDragStartY() + dxy.getY());
+            if (m_parent != null && m_parent instanceof WiresShape)
+            {
+                Point2D intersection = Geometry.findIntersection(x, y, ((WiresShape) m_parent).getPath());
+                if (intersection != null)
+                {
+                    Console.get().info("adjust: "+ intersection.toJSONString());
+                    double dx = intersection.getX() - this.dragContext.getDragStartX();
+                    double dy = intersection.getY() - this.dragContext.getDragStartY();
+                    dxy.setX(dx).setY(dy);
+                }
+            }
         }
         return false;
     }
 
-    private void findIntersections(Point2D dxy, DockingCallback callback, MultiPath targetShape)
-    {
-        int x = (int) (this.dragContext.getDragStartX() + dxy.getX());
-        int y = (int) (this.dragContext.getDragStartY() + dxy.getY());
-        Point2D pointerPosition = new Point2D(x, y);
-        Point2D center = findCenter(targetShape);
-        NFastArrayList<PathPartList> pathPartListArray = targetShape.getPathPartListArray();
-        for (int i = 0; i < pathPartListArray.size(); i++)
-        {
-            Point2DArray listOfLines = new Point2DArray();
-            listOfLines.push(center);
-            listOfLines.push(getProjection(center, pointerPosition, targetShape.getBoundingBox().getWidth()));
-            Set<Point2D>[] intersections = new Set[1];
-            Geometry.getCardinalIntersects(pathPartListArray.get(i), listOfLines, intersections);
-            if (intersections.length == 2)
-            {
-                Point2D intersection = intersections[1].iterator().next();
-                double dx = intersection.getX() - this.dragContext.getDragStartX();
-                double dy = intersection.getY() - this.dragContext.getDragStartY();
-                callback.meh(new Point2D(dx, dy));
-            }
-
-        }
-    }
-
-    private Point2D findCenter(MultiPath rect)
-    {
-        Point2DArray cardinals = Geometry.getCardinals(rect.getBoundingPoints().getBoundingBox());
-        return cardinals.get(0);
-    }
-
-    private Point2D getProjection(Point2D center, Point2D intersection, double length)
-    {
-        Point2D unit = intersection.sub(center).unit();
-        return center.add(unit.mul(length));
-    }
 }

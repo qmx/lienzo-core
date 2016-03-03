@@ -23,6 +23,7 @@ import java.util.Set;
 import com.ait.lienzo.client.core.shape.AbstractMultiPathPartShape;
 import com.ait.lienzo.client.core.shape.BezierCurve;
 import com.ait.lienzo.client.core.shape.IPrimitive;
+import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.shape.QuadraticCurve;
 import com.ait.lienzo.client.core.types.BoundingBox;
 import com.ait.lienzo.client.core.types.BoundingPoints;
@@ -34,6 +35,7 @@ import com.ait.lienzo.client.core.types.Transform;
 import com.ait.lienzo.shared.core.types.Direction;
 import com.ait.tooling.nativetools.client.collection.NFastArrayList;
 import com.ait.tooling.nativetools.client.collection.NFastDoubleArrayJSO;
+import com.ait.tooling.nativetools.client.util.Console;
 
 /**
  * Static utility methods related to geometry and other math.
@@ -1296,5 +1298,56 @@ public final class Geometry
         prim.setScale(wide / bbox.getWidth(), high / bbox.getHeight());
 
         return prim;
+    }
+
+    /**
+     * Finds intersecting point from the center of a path
+     * @param x
+     * @param y
+     * @param path
+     * @return the path's intersection point, or null if there's no intersection point
+     */
+    public static Point2D findIntersection(int x, int y, MultiPath path)
+    {
+        Point2D pointerPosition = new Point2D(x, y);
+        Point2D center = findCenter(path);
+        Console.get().info("c "+center.toJSONString());
+        NFastArrayList<PathPartList> pathPartListArray = path.getPathPartListArray();
+        for (int i = 0; i < pathPartListArray.size(); i++)
+        {
+            Point2DArray listOfLines = new Point2DArray();
+            listOfLines.push(center);
+            double length = path.getBoundingPoints().getBoundingBox().getWidth()+path.getBoundingPoints().getBoundingBox().getHeight();
+            listOfLines.push(getProjection(center, pointerPosition, length));
+            Set<Point2D>[] intersections = new Set[1];
+            getCardinalIntersects(pathPartListArray.get(i), listOfLines, intersections);
+            if (intersections.length == 2)
+            {
+                return intersections[1].iterator().next();
+            }
+        }
+        return null;
+    }
+
+    private static Point2D findCenter(MultiPath rect)
+    {
+        BoundingBox box = getAbsoluteBoundingBox(rect);
+        Point2DArray cardinals = getCardinals(box);
+        return cardinals.get(0);
+    }
+
+    private static BoundingBox getAbsoluteBoundingBox(MultiPath rect)
+    {
+        Point2D loc = rect.getAbsoluteLocation();
+
+        BoundingBox relativeBbox = rect.getBoundingPoints().getBoundingBox();
+
+        return new BoundingBox(loc.getX(), loc.getY(), loc.getX() + relativeBbox.getWidth(), loc.getY() + relativeBbox.getHeight());
+    }
+
+    private static Point2D getProjection(Point2D center, Point2D intersection, double length)
+    {
+        Point2D unit = intersection.sub(center).unit();
+        return center.add(unit.mul(length));
     }
 }
