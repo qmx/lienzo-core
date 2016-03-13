@@ -25,6 +25,7 @@ import com.ait.lienzo.client.core.shape.BezierCurve;
 import com.ait.lienzo.client.core.shape.IPrimitive;
 import com.ait.lienzo.client.core.shape.MultiPath;
 import com.ait.lienzo.client.core.shape.QuadraticCurve;
+import com.ait.lienzo.client.core.shape.wires.WiresShape;
 import com.ait.lienzo.client.core.types.BoundingBox;
 import com.ait.lienzo.client.core.types.BoundingPoints;
 import com.ait.lienzo.client.core.types.PathPartEntryJSO;
@@ -1030,6 +1031,12 @@ public final class Geometry
         final Point2DArray cardinals = getCardinals(shape.getBoundingBox());
 
         @SuppressWarnings("unchecked")
+        final Set<Point2D>[] intersections = getIntersects(shape, cardinals);
+        return removeInnerPoints(cardinals.get(0), intersections);
+    }
+
+    public static Set<Point2D>[] getIntersects(AbstractMultiPathPartShape<?> shape, Point2DArray cardinals) {
+        @SuppressWarnings("unchecked")
         final Set<Point2D>[] intersections = new Set[cardinals.size()];// c is removed, so -1
 
         final NFastArrayList<PathPartList> paths = shape.getPathPartListArray();
@@ -1040,7 +1047,7 @@ public final class Geometry
         {
             getCardinalIntersects(paths.get(i), cardinals, intersections);
         }
-        return removeInnerPoints(cardinals.get(0), intersections);
+        return intersections;
     }
 
     public static void getCardinalIntersects(PathPartList path, Point2DArray cardinals, Set<Point2D>[] intersections)
@@ -1222,7 +1229,7 @@ public final class Geometry
      */
     public static final Point2DArray getCardinals(final BoundingBox box)
     {
-        final Point2D c = new Point2D(box.getX() + box.getWidth() / 2, box.getY() + box.getHeight() / 2);
+        final Point2D c = findCenter(box);
 
         final Point2D n = new Point2D(c.getX(), box.getY());
 
@@ -1310,30 +1317,47 @@ public final class Geometry
     public static Point2D findIntersection(int x, int y, MultiPath path)
     {
         Point2D pointerPosition = new Point2D(x, y);
-        Point2D center = findCenter(path);
-        Console.get().info("c "+center.toJSONString());
-        NFastArrayList<PathPartList> pathPartListArray = path.getPathPartListArray();
-        for (int i = 0; i < pathPartListArray.size(); i++)
+        BoundingBox box = path.getBoundingBox();
+        Point2D center = findCenter(box);
+
+        // length just needs to ensure the c to xy is outside of the path
+        double length = box.getWidth()+box.getHeight();
+
+        Point2D projectionPoint = getProjection(center, pointerPosition, length);
+
+        Point2DArray points = new Point2DArray();
+        points.push(center);
+        points.push(projectionPoint);
+
+        Set<Point2D>[] intersects = Geometry.getIntersects(path, points);
+
+        Point2D nearest = null;
+        for (Set<Point2D> set : intersects)
         {
-            Point2DArray listOfLines = new Point2DArray();
-            listOfLines.push(center);
-            double length = path.getBoundingPoints().getBoundingBox().getWidth()+path.getBoundingPoints().getBoundingBox().getHeight();
-            listOfLines.push(getProjection(center, pointerPosition, length));
-            Set<Point2D>[] intersections = new Set[1];
-            getCardinalIntersects(pathPartListArray.get(i), listOfLines, intersections);
-            if (intersections.length == 2)
+            double nearesstDistance = length;
+
+            if (set != null && !set.isEmpty())
             {
-                return intersections[1].iterator().next();
+                for (Point2D p : set)
+                {
+                    double currentDistance = p.distance(pointerPosition);
+
+                    if (currentDistance < nearesstDistance)
+                    {
+                        nearesstDistance = currentDistance;
+                        nearest = p;
+                    }
+                }
             }
         }
-        return null;
+
+        return nearest;
+
     }
 
-    private static Point2D findCenter(MultiPath rect)
+    private static Point2D findCenter(BoundingBox box)
     {
-        BoundingBox box = getAbsoluteBoundingBox(rect);
-        Point2DArray cardinals = getCardinals(box);
-        return cardinals.get(0);
+        return new Point2D(box.getX() + box.getWidth() / 2, box.getY() + box.getHeight() / 2);
     }
 
     private static BoundingBox getAbsoluteBoundingBox(MultiPath rect)
